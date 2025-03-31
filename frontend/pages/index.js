@@ -1,19 +1,19 @@
-import { useWallet } from '@solana/wallet-adapter-react'
-import HCaptcha from '@hcaptcha/react-hcaptcha'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
+import { useWallet } from '@solana/wallet-adapter-react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Home() {
-  const { connected, publicKey } = useWallet()
-  const [captchaVerified, setCaptchaVerified] = useState(false)
-  const router = useRouter()
+  const { connected } = useWallet();
+  const [captchaVerified, setCaptchaVerified] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (connected && captchaVerified) {
-      router.push('/feed')
+      router.push('/feed');
     }
-  }, [connected, captchaVerified])
+  }, [connected, captchaVerified, router]);
 
   return (
     <div className="welcome-container">
@@ -46,5 +46,5 @@ export default function Home() {
         }
       `}</style>
     </div>
-  )
+  );
 }

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import PostForm from '../components/Feed/PostForm'
 import PostList from '../components/Feed/PostList'
 import Navbar from '../components/UI/Navbar'
+import { Web3 } from '@solana/web3.js';
+const { Connection } = Web3;
 
 export default function Feed() {
   const [posts, setPosts] = useState([])
