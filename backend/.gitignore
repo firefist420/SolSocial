@@ -9,3 +9,7 @@ __pycache__/
 *.log
 alembic.ini
 alembic/
+node_modules/
+".next/ 
+*.node 
+dist/
