@@ -20,4 +20,4 @@ yarn.lock
 .DS_Store
 .env.local
 .env.development
-.env.production
+.env.production"frontend/" 
