@@ -22,3 +22,7 @@ yarn.lock
 .env.production"frontend/" 
 .vscode/
 .idea/
+!alembic/
+!alembic/versions/
+!alembic/env.py
+!alembic/script.py.mako
