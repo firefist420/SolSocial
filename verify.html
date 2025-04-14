@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Zoro Jackpot Verification</title>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://unpkg.com/@solana/web3.js@1.70.1/lib/index.iife.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        button { background: #6200ee; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        #status { margin-top: 20px; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Wallet Verification</h1>
+    <div id="hcaptcha-container" class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITEKEY"></div>
+    <button id="connect">Connect Wallet</button>
+    <div id="status"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const chatId = urlParams.get('chat_id');
+        let wallet;
+
+        document.getElementById('connect').addEventListener('click', async () => {
+            if (!hcaptcha.getResponse()) {
+                document.getElementById('status').innerHTML = '<div class="error">Please complete the captcha first</div>';
+                return;
+            }
+
+            if (window.solana) {
+                try {
+                    wallet = window.solana;
+                    await wallet.connect();
+                    
+                    const message = `Zoro-Verify:${token}:${chatId}`;
+                    const encoded = new TextEncoder().encode(message);
+                    const { signature } = await wallet.signMessage(encoded);
+                    
+                    document.getElementById('status').innerHTML = `
+                        <div class="success">
+                            <p>Verification complete!</p>
+                            <p>Return to Telegram and send:</p>
+                            <code>/verify ${wallet.publicKey.toString()} ${token}</code>
+                        </div>`;
+                } catch (error) {
+                    document.getElementById('status').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                }
+            } else {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">
+                        <p>Phantom wallet not found!</p>
+                        <p>Please install the <a href="https://phantom.app/" target="_blank">Phantom Wallet</a> extension.</p>
+                    </div>`;
+            }
+        });
+    </script>
+</body>
+</html>
