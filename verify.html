@@ -2,58 +2,252 @@
 <html>
 <head>
     <title>Zoro Jackpot Verification</title>
-    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
-    <script src="https://unpkg.com/@solana/web3.js@1.70.1/lib/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.70.1/lib/index.iife.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-        button { background: #6200ee; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
-        #status { margin-top: 20px; padding: 15px; border-radius: 5px; }
-        .success { background: #d4edda; color: #155724; }
-        .error { background: #f8d7da; color: #721c24; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            color: #6200ee;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        button { 
+            background: #6200ee; 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 5px; 
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #7c4dff;
+        }
+        button:disabled {
+            background: #b39ddb;
+            cursor: not-allowed;
+        }
+        #status { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .success { 
+            background: #e8f5e9; 
+            color: #2e7d32; 
+            border-left: 4px solid #4caf50;
+        }
+        .error { 
+            background: #ffebee; 
+            color: #c62828; 
+            border-left: 4px solid #f44336;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid #2196f3;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            word-break: break-all;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .wallet-info {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .step {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .step:last-child {
+            border-bottom: none;
+        }
+        .step-number {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            background: #6200ee;
+            color: white;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            line-height: 25px;
+        }
     </style>
 </head>
 <body>
-    <h1>Wallet Verification</h1>
-    <div id="hcaptcha-container" class="h-captcha" data-sitekey="fc42e7c4-9244-4726-a4c6-1f1e37c45ff8"></div>
-    <button id="connect">Connect Wallet</button>
-    <div id="status"></div>
+    <div class="container">
+        <h1>Wallet Verification</h1>
+        
+        <div class="step">
+            <div class="step-number">1</div>
+            <strong>Connect Your Wallet</strong>
+            <p>Click the button below to connect your Solana wallet (Phantom, Backpack, etc.)</p>
+            <button id="connect">Connect Wallet</button>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">2</div>
+            <strong>Verify Ownership</strong>
+            <p>Sign the verification message to prove you own this wallet</p>
+            <button id="verify" disabled>Verify Wallet</button>
+        </div>
+        
+        <div class="step">
+            <div class="step-number">3</div>
+            <strong>Complete Verification</strong>
+            <p>Return to Telegram and check your verification status</p>
+        </div>
+        
+        <div id="wallet-info" class="wallet-info" style="display: none;">
+            Connected Wallet: <span id="wallet-address"></span>
+        </div>
+        
+        <div id="status"></div>
+    </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
-        const chatId = urlParams.get('chat_id');
+        const user_id = urlParams.get('user_id');
         let wallet;
+        let publicKey;
 
         document.getElementById('connect').addEventListener('click', async () => {
-            if (!hcaptcha.getResponse()) {
-                document.getElementById('status').innerHTML = '<div class="error">Please complete the captcha first</div>';
+            try {
+                if (window.solana && window.solana.isPhantom) {
+                    wallet = window.solana;
+                    
+                    // Connect to wallet
+                    const response = await wallet.connect();
+                    publicKey = response.publicKey.toString();
+                    
+                    // Show wallet info
+                    document.getElementById('wallet-info').style.display = 'block';
+                    document.getElementById('wallet-address').textContent = publicKey;
+                    
+                    // Enable verify button
+                    document.getElementById('verify').disabled = false;
+                    document.getElementById('connect').disabled = true;
+                    
+                    // Show success
+                    document.getElementById('status').innerHTML = `
+                        <div class="success">
+                            Wallet connected successfully!
+                        </div>`;
+                } else {
+                    throw new Error('Phantom wallet not detected. Please install Phantom Wallet.');
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">
+                        Error: ${error.message}<br><br>
+                        <a href="https://phantom.app/" target="_blank">Download Phantom Wallet</a>
+                    </div>`;
+            }
+        });
+
+        document.getElementById('verify').addEventListener('click', async () => {
+            if (!publicKey) {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">
+                        Please connect your wallet first
+                    </div>`;
                 return;
             }
 
-            if (window.solana) {
-                try {
-                    wallet = window.solana;
-                    await wallet.connect();
-                    
-                    const message = `Zoro-Verify:${token}:${chatId}`;
-                    const encoded = new TextEncoder().encode(message);
-                    const { signature } = await wallet.signMessage(encoded);
-                    
+            try {
+                // Create verification message
+                const message = `Zoro-Verify:${token}:${user_id}`;
+                const encodedMessage = new TextEncoder().encode(message);
+                
+                // Sign the message
+                const { signature } = await wallet.signMessage(encodedMessage);
+                
+                // Send verification to backend
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        wallet: publicKey,
+                        token: token,
+                        user_id: user_id,
+                        signature: Array.from(signature)
+                    }),
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
                     document.getElementById('status').innerHTML = `
                         <div class="success">
-                            <p>Verification complete!</p>
-                            <p>Return to Telegram and send:</p>
-                            <code>/verify ${wallet.publicKey.toString()} ${token}</code>
+                            <p>Verification successful!</p>
+                            <p>You can now return to Telegram and check your verification status.</p>
+                            <p>Wallet: <code>${publicKey}</code></p>
                         </div>`;
-                } catch (error) {
-                    document.getElementById('status').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                    document.getElementById('verify').disabled = true;
+                } else {
+                    throw new Error(result.error || 'Verification failed');
                 }
-            } else {
+            } catch (error) {
                 document.getElementById('status').innerHTML = `
                     <div class="error">
-                        <p>Phantom wallet not found!</p>
-                        <p>Please install the <a href="https://phantom.app/" target="_blank">Phantom Wallet</a> extension.</p>
+                        Verification error: ${error.message}
                     </div>`;
+            }
+        });
+
+        // Auto-connect if returning with wallet param
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.solana && window.solana.isPhantom) {
+                wallet = window.solana;
+                
+                // Check if already connected
+                wallet.connect({ onlyIfTrusted: true })
+                    .then(response => {
+                        if (response) {
+                            publicKey = response.publicKey.toString();
+                            document.getElementById('wallet-info').style.display = 'block';
+                            document.getElementById('wallet-address').textContent = publicKey;
+                            document.getElementById('verify').disabled = false;
+                            document.getElementById('connect').disabled = true;
+                            document.getElementById('status').innerHTML = `
+                                <div class="info">
+                                    Wallet already connected. Click "Verify Wallet" to continue.
+                                </div>`;
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Auto-connect error:', error);
+                    });
             }
         });
     </script>
